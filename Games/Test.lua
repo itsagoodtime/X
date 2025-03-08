@@ -1,5 +1,6 @@
+local m = xRequire('Maid.lua','Models')
 local s = xRequire('Services.lua','Models')
 local s2 = xRequire('Signal.lua','Models')
 local u = xRequire('Utility.lua','Models')
 local p = s:Get('Players')
-print('just a test',p.LocalPlayer,s2,u)
+print('just a test',p.LocalPlayer,s2,u,m)
