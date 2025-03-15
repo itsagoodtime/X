@@ -3,10 +3,14 @@ local gamelist = {
         ['Name'] = 'Test',
         ['Status'] = true
     },
-    [5974200165] = {
+    [17456214938] = {
         ['Name'] = 'Shuntian',
         ['Status'] = true
     },
+    [5974200165] = {
+        ['Name'] = 'Shuntian',
+        ['Status'] = true
+    }
 }
 
 return gamelist
