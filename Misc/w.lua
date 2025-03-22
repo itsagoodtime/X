@@ -61,7 +61,7 @@ local whitelist = {
         ['Type'] = 'Mobile'
     },
     ['X_7PPN0uNxcLjEKZyr'] = {
-        ['HWID'] = 'f76ab17f-9a36-46ce-ad44-4319bac84d71',
+        ['HWID'] = '40c8f96c-1e0b-4dff-a80b-e1f4421d40b5',
         ['Blacklist'] = false,
         ['Games'] = {
             ['Shuntian'] = {},
