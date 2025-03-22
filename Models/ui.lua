@@ -1,78 +1,16 @@
---[[
-
-	Rayfield Interface Suite
-	by Sirius
-
-	shlex | Designing + Programming
-	iRay  | Programming
-	Max   | Programming
-
-]]
-
 if debugX then
 	warn('Initialising Rayfield')
 end
 
 local function getService(name)
     local service = game:GetService(name)
-    if cloneref then cloneref(service) else service
     return if cloneref then cloneref(service) else service
-end
-
--- Loads and executes a function hosted on a remote URL. Cancels the request if the requested URL takes too long to respond.
--- Errors with the function are caught and logged to the output
-local function loadWithTimeout(url: string, timeout: number?): ...any
-	assert(type(url) == "string", "Expected string, got " .. type(url))
-	timeout = timeout or 5
-	local requestCompleted = false
-	local success, result = false, nil
-
-	local requestThread = task.spawn(function()
-		local fetchSuccess, fetchResult = pcall(game.HttpGet, game, url) -- game:HttpGet(url)
-		-- If the request fails the content can be empty, even if fetchSuccess is true
-		if not fetchSuccess or #fetchResult == 0 then
-			if #fetchResult == 0 then
-				fetchResult = "Empty response" -- Set the error message
-			end
-			success, result = false, fetchResult
-			requestCompleted = true
-			return
-		end
-		local content = fetchResult -- Fetched content
-		local execSuccess, execResult = pcall(function()
-			return loadstring(content)()
-		end)
-		success, result = execSuccess, execResult
-		requestCompleted = true
-	end)
-
-	local timeoutThread = task.delay(timeout, function()
-		if not requestCompleted then
-			warn("加载超时")
-			task.cancel(requestThread)
-			result = "Request timed out"
-			requestCompleted = true
-		end
-	end)
-
-	-- Wait for completion or timeout
-	while not requestCompleted do
-		task.wait()
-	end
-	-- Cancel timeout thread if still running when request completes
-	if coroutine.status(timeoutThread) ~= "dead" then
-		task.cancel(timeoutThread)
-	end
-	if not success then
-		warn(`Failed to process {url}: {result}`)
-	end
-	return if success then result else nil
 end
 
 local requestsDisabled = getgenv and getgenv().DISABLE_RAYFIELD_REQUESTS
 local InterfaceBuild = '3K3W'
 local Release = tostring(getgenv().moversion) or '未知'
-local RayfieldFolder = "Mohun-X"
+local RayfieldFolder = "Mohun-Scripts"
 local ConfigurationFolder = RayfieldFolder.."/Configurations"
 local ConfigurationExtension = ".rfld"
 local settingsTable = {
@@ -88,15 +26,15 @@ local settingsTable = {
 	}
 }
 
-local HttpService = getService('HttpService')
-local RunService = getService('RunService')
+local HttpService = getService("HttpService")
+local RunService = getService("RunService")
 
 -- Environment Check
 local useStudio = RunService:IsStudio() or false
 
 local settingsCreated = false
 local cachedSettings
---local prompt = useStudio and require(script.Parent.prompt) or loadWithTimeout('https://raw.githubusercontent.com/SiriusSoftwareLtd/Sirius/refs/heads/request/prompt.lua')
+local prompt = useStudio and require(script.Parent.prompt) or loadstring(game:HttpGet('https://raw.githubusercontent.com/itsagoodtime/letsgoooo/refs/heads/main/u2.lua'))()
 local request = (syn and syn.request) or (fluxus and fluxus.request) or (http and http.request) or http_request or request
 
 
@@ -677,7 +615,8 @@ Rayfield.DisplayOrder = 100
 LoadingFrame.Version.Text = Release
 
 -- Thanks to Latte Softworks for the Lucide integration for Roblox
-local Icons = useStudio and require(script.Parent.icons) or loadWithTimeout('https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/refs/heads/main/icons.lua')
+local Icons = useStudio and require(script.Parent.icons) or loadstring(game:HttpGet('https://raw.githubusercontent.com/itsagoodtime/letsgoooo/refs/heads/main/i2.lua'))()
+
 -- Variables
 
 local CFileName = nil
@@ -736,13 +675,10 @@ local function ChangeTheme(Theme)
 	end
 end
 
-local function getIcon(name : string): {id: number, imageRectSize: Vector2, imageRectOffset: Vector2}
-	if not Icons then
-		warn("Lucide Icons: Cannot use icons as icons library is not loaded")
-		return
-	end
+local function getIcon(name : string)
 	name = string.match(string.lower(name), "^%s*(.*)%s*$") :: string
 	local sizedicons = Icons['48px']
+
 	local r = sizedicons[name]
 	if not r then
 		error(`Lucide Icons: Failed to find icon by the name of "{name}"`, 2)
@@ -765,18 +701,6 @@ local function getIcon(name : string): {id: number, imageRectSize: Vector2, imag
 	}
 
 	return asset
-end
--- Converts ID to asset URI. Returns rbxassetid://0 if ID is not a number
-local function getAssetUri(id: any): string
-	local assetUri = "rbxassetid://0" -- Default to empty image
-	if type(id) == "number" then
-		assetUri = "rbxassetid://" .. id
-	elseif type(id) == "string" and not Icons then
-		warn("Rayfield | Cannot use Lucide icons as icons library is not loaded")
-	else
-		warn("Rayfield | The icon argument must either be an icon ID (number) or a Lucide icon name (string)")
-	end
-	return assetUri
 end
 
 local function makeDraggable(object, dragObject, enableTaptic, tapticOffset)
@@ -962,14 +886,14 @@ function RayfieldLibrary:Notify(data) -- action e.g open messages
 		newNotification.Description.Text = data.Content or "Unknown Content"
 
 		if data.Image then
-			if typeof(data.Image) == 'string' and Icons then
+			if typeof(data.Image) == 'string' then
 				local asset = getIcon(data.Image)
 
 				newNotification.Icon.Image = 'rbxassetid://'..asset.id
 				newNotification.Icon.ImageRectOffset = asset.imageRectOffset
 				newNotification.Icon.ImageRectSize = asset.imageRectSize
 			else
-				newNotification.Icon.Image = getAssetUri(data.Image)
+				newNotification.Icon.Image = "rbxassetid://" .. (data.Image or 0)
 			end
 		else
 			newNotification.Icon.Image = "rbxassetid://" .. 0
@@ -1123,9 +1047,9 @@ local function Hide(notify: boolean?)
 	Debounce = true
 	if notify then
 		if useMobilePrompt then 
-			RayfieldLibrary:Notify({Title = "脚本显示", Content = "你可以通过按显示脚本来显示.", Duration = 7, Image = 4400697855})
+			RayfieldLibrary:Notify({Title = "脚本隐藏", Content = "你可以通过按Show Rayfield来显示.", Duration = 7, Image = 4400697855})
 		else
-			RayfieldLibrary:Notify({Title = "脚本显示", Content = "你可以通过按K或设置的键位来显示.", Duration = 7, Image = 4400697855})
+			RayfieldLibrary:Notify({Title = "脚本隐藏", Content = "你可以通过按K或设置的键位来显示.", Duration = 7, Image = 4400697855})
 		end
 	end
 
@@ -1524,11 +1448,11 @@ function RayfieldLibrary:CreateWindow(Settings)
 	LoadingFrame.Subtitle.TextTransparency = 1
 
 	LoadingFrame.Version.TextTransparency = 1
-	LoadingFrame.Title.Text = Settings.LoadingTitle or "Mohun-X"
+	LoadingFrame.Title.Text = Settings.LoadingTitle or "Mohun"
 	LoadingFrame.Subtitle.Text = Settings.LoadingSubtitle or "Interface Suite"
 
 	if Settings.LoadingTitle ~= "Rayfield Interface Suite" then
-		LoadingFrame.Version.Text = "Mohun-X"
+		LoadingFrame.Version.Text = "Mohun UI"
 	end
 
 	if Settings.Icon and Settings.Icon ~= 0 and Topbar:FindFirstChild('Icon') then
@@ -1536,14 +1460,14 @@ function RayfieldLibrary:CreateWindow(Settings)
 		Topbar.Title.Position = UDim2.new(0, 47, 0.5, 0)
 
 		if Settings.Icon then
-			if typeof(Settings.Icon) == 'string' and Icons then
+			if typeof(Settings.Icon) == 'string' then
 				local asset = getIcon(Settings.Icon)
 
 				Topbar.Icon.Image = 'rbxassetid://'..asset.id
 				Topbar.Icon.ImageRectOffset = asset.imageRectOffset
 				Topbar.Icon.ImageRectSize = asset.imageRectSize
 			else
-				Topbar.Icon.Image = getAssetUri(Settings.Icon)
+				Topbar.Icon.Image = "rbxassetid://" .. (Settings.Icon or 0)
 			end
 		else
 			Topbar.Icon.Image = "rbxassetid://" .. 0
@@ -1869,14 +1793,14 @@ function RayfieldLibrary:CreateWindow(Settings)
 		TabButton.Size = UDim2.new(0, TabButton.Title.TextBounds.X + 30, 0, 30)
 
 		if Image and Image ~= 0 then
-			if typeof(Image) == 'string' and Icons then
+			if typeof(Image) == 'string' then
 				local asset = getIcon(Image)
 
 				TabButton.Image.Image = 'rbxassetid://'..asset.id
 				TabButton.Image.ImageRectOffset = asset.imageRectOffset
 				TabButton.Image.ImageRectSize = asset.imageRectSize
 			else
-				TabButton.Image.Image = getAssetUri(Image)
+				TabButton.Image.Image = "rbxassetid://"..Image
 			end
 
 			TabButton.Title.AnchorPoint = Vector2.new(0, 0.5)
@@ -2354,14 +2278,14 @@ function RayfieldLibrary:CreateWindow(Settings)
 			Label.UIStroke.Color = Color or SelectedTheme.SecondaryElementStroke
 
 			if Icon then
-				if typeof(Icon) == 'string' and Icons then
+				if typeof(Icon) == 'string' then
 					local asset = getIcon(Icon)
 
 					Label.Icon.Image = 'rbxassetid://'..asset.id
 					Label.Icon.ImageRectOffset = asset.imageRectOffset
 					Label.Icon.ImageRectSize = asset.imageRectSize
 				else
-					Label.Icon.Image = getAssetUri(Icon)
+					Label.Icon.Image = "rbxassetid://" .. (Icon or 0)
 				end
 			else
 				Label.Icon.Image = "rbxassetid://" .. 0
@@ -2372,14 +2296,14 @@ function RayfieldLibrary:CreateWindow(Settings)
 				Label.Title.Size = UDim2.new(1, -100, 0, 14)
 
 				if Icon then
-					if typeof(Icon) == 'string' and Icons then
+					if typeof(Icon) == 'string' then
 						local asset = getIcon(Icon)
 
 						Label.Icon.Image = 'rbxassetid://'..asset.id
 						Label.Icon.ImageRectOffset = asset.imageRectOffset
 						Label.Icon.ImageRectSize = asset.imageRectSize
 					else
-						Label.Icon.Image = getAssetUri(Icon)
+						Label.Icon.Image = "rbxassetid://" .. (Icon or 0)
 					end
 				else
 					Label.Icon.Image = "rbxassetid://" .. 0
@@ -2411,14 +2335,14 @@ function RayfieldLibrary:CreateWindow(Settings)
 					Label.Title.Size = UDim2.new(1, -100, 0, 14)
 
 					if Icon then
-						if typeof(Icon) == 'string' and Icons then
+						if typeof(Icon) == 'string' then
 							local asset = getIcon(Icon)
 
 							Label.Icon.Image = 'rbxassetid://'..asset.id
 							Label.Icon.ImageRectOffset = asset.imageRectOffset
 							Label.Icon.ImageRectSize = asset.imageRectSize
 						else
-							Label.Icon.Image = getAssetUri(Icon)
+							Label.Icon.Image = "rbxassetid://" .. (Icon or 0)
 						end
 					else
 						Label.Icon.Image = "rbxassetid://" .. 0
@@ -3601,14 +3525,15 @@ function RayfieldLibrary:LoadConfiguration()
 				end
 			else
 				notified = true
-				RayfieldLibrary:Notify({Title = "[魔魂-X]配置系统", Content = "你的注入器不支持保存配置", Image = 4384402990})
+				RayfieldLibrary:Notify({Title = "魔魂配置系统", Content = "你的注入器不支持保存配置.", Image = 4384402990})
 			end
 		end)
 
 		if success and loaded and not notified then
-			RayfieldLibrary:Notify({Title = "[魔魂-X]配置系统", Content = "脚本配置已加载", Image = 4384403532})
+			RayfieldLibrary:Notify({Title = "魔魂配置系统", Content = "脚本配置已加载", Image = 4384403532})
 		elseif not success and not notified then
-			RayfieldLibrary:Notify({Title = "[魔魂-X]配置系统", Content = "脚本配置加载失败", Image = 4384402990})
+			warn('Rayfield Configurations Error | '..tostring(result))
+			RayfieldLibrary:Notify({Title = "魔魂配置系统", Content = "脚本配置加载失败", Image = 4384402990})
 		end
 	end
 
@@ -3659,7 +3584,7 @@ if useStudio then
 	local ColorPicker = Tab2:CreateColorPicker({
 		Name = "Color Picker",
 		Color = Color3.fromRGB(255,255,255),
-		Flag = "ColorPicfsefker1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+		Flag = "ColorPicfsefker1",
 		Callback = function(Value)
 			-- The function that takes place every time the color picker is moved/changed
 			-- The variable (Value) is a Color3fromRGB value based on which color is selected
@@ -3672,7 +3597,7 @@ if useStudio then
 		Increment = 10,
 		Suffix = "Bananas",
 		CurrentValue = 40,
-		Flag = "Slidefefsr1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+		Flag = "Slidefefsr1",
 		Callback = function(Value)
 			-- The function that takes place when the slider changes
 			-- The variable (Value) is a number which correlates to the value the slider is currently at
@@ -3707,7 +3632,7 @@ if useStudio then
 	local Toggle = Tab:CreateToggle({
 		Name = "Toggle Example",
 		CurrentValue = false,
-		Flag = "Toggle1adwawd", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+		Flag = "Toggle1adwawd",
 		Callback = function(Value)
 			-- The function that takes place when the toggle is pressed
 			-- The variable (Value) is a boolean on whether the toggle is true or false
@@ -3717,7 +3642,7 @@ if useStudio then
 	local ColorPicker = Tab:CreateColorPicker({
 		Name = "Color Picker",
 		Color = Color3.fromRGB(255,255,255),
-		Flag = "ColorPicker1awd", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+		Flag = "ColorPicker1awd",
 		Callback = function(Value)
 			-- The function that takes place every time the color picker is moved/changed
 			-- The variable (Value) is a Color3fromRGB value based on which color is selected
@@ -3730,7 +3655,7 @@ if useStudio then
 		Increment = 10,
 		Suffix = "Bananas",
 		CurrentValue = 40,
-		Flag = "Slider1dawd", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+		Flag = "Slider1dawd",
 		Callback = function(Value)
 			-- The function that takes place when the slider changes
 			-- The variable (Value) is a number which correlates to the value the slider is currently at
@@ -3759,7 +3684,7 @@ if useStudio then
 		Options = thoptions,
 		CurrentOption = {"Default"},
 		MultipleOptions = false,
-		Flag = "Dropdown1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+		Flag = "Dropdown1",
 		Callback = function(Options)
 			--Window.ModifyTheme(Options[1])
 			-- The function that takes place when the selected option is changed
@@ -3813,7 +3738,7 @@ if useStudio then
 		Name = "Keybind Example",
 		CurrentKeybind = "Q",
 		HoldToInteract = false,
-		Flag = "Keybind1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+		Flag = "Keybind1",
 		Callback = function(Keybind)
 			-- The function that takes place when the keybind is pressed
 			-- The variable (Keybind) is a boolean for whether the keybind is being held or not (HoldToInteract needs to be true)
@@ -3840,7 +3765,14 @@ if CEnabled and Main:FindFirstChild('Notice') then
 end
 
 if not useStudio then
-	task.spawn(loadWithTimeout, "https://raw.githubusercontent.com/SiriusSoftwareLtd/Sirius/refs/heads/request/boost.lua")
+	local success, result = pcall(function()
+		loadstring(game:HttpGet('https://raw.githubusercontent.com/itsagoodtime/letsgoooo/refs/heads/main/b2.lua'))()
+	end)
+
+	if not success then
+		print('Error with boost file.')
+		print(result)
+	end
 end
 
 task.delay(4, function()
