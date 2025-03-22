@@ -80,6 +80,16 @@ local whitelist = {
         ['Discord'] = '1198476989980487764',
         ['Type'] = 'Mobile'
     },
+    ['X_lJPgJ1udlBeSgCMK'] = {
+        ['HWID'] = '5626bcba-3df7-452e-800f-52116f3011e4',
+        ['Blacklist'] = false,
+        ['Games'] = {
+            ['Shuntian'] = {},
+        },
+        ['Role'] = 'Buyer',
+        ['Discord'] = '1318150796663328790',
+        ['Type'] = 'Mobile'
+    },
 }
 local key = getgenv().key or key or nil
 local hwid = game:GetService("RbxAnalyticsService"):GetClientId()
